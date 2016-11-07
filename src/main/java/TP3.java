@@ -60,10 +60,11 @@ public class TP3 {
 		job2.setJarByClass(TP3.class);
 		job2.setMapperClass(TP3Mapper2.class);
 		job2.setMapOutputKeyClass(LongWritable.class);
-		job2.setMapOutputValueClass(Text.class);
+		job2.setMapOutputValueClass(AvgWritable.class);
+		job2.setCombinerClass(TP3Reducer2.class);
 		job2.setReducerClass(TP3Reducer2.class);
 		job2.setOutputKeyClass(LongWritable.class);
-		job2.setOutputValueClass(LongWritable.class);
+		job2.setOutputValueClass(AvgWritable.class);
 		job2.setOutputFormatClass(TextOutputFormat.class);
 		job2.setInputFormatClass(TextInputFormat.class);
 		FileInputFormat.addInputPath(job2, new Path(tmpPath));
