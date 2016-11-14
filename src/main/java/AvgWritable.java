@@ -92,9 +92,8 @@ public class AvgWritable implements Writable {
 
     @Override
     public String toString() {
-
-        return "\t" + count + "\t" + avg + "\t" + max + "\t" + min;
-
+    	String format = "\t%-20s%-20s%-20s%-20s%n";
+    	return String.format(format,   count, max , min, avg);
     }
 
 

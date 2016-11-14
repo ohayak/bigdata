@@ -3,6 +3,7 @@ import java.io.InterruptedIOException;
 import java.util.logging.Logger;
 
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Mapper;
@@ -18,12 +19,12 @@ public class TP3Mapper2 extends Mapper<Object, Text, LongWritable, AvgWritable>{
 
 	public void map(Object key, Text value, Context context) throws IOException, InterruptedException {
 		String tokens[] = value.toString().split("\\s+|\\t");
-		long keyOut = (long) Math.floor(Math.log(Long.parseLong(tokens[1])) / Math.log(base));
 		try {
 			int pop = Integer.parseInt(tokens[1]);
+			long keyOut = (long) Math.floor(Math.log(pop) / Math.log(base));
 			AvgWritable w = new AvgWritable(pop, 1, pop, pop);
-			context.write(new LongWritable(keyOut), w);
 			context.getCounter("WCP", "nb_cities").increment(1);
+			context.write(new LongWritable(keyOut), w);
 		}
 		catch (NumberFormatException e) {
 			LOGGER.info("ville invalide: populatio="+tokens[4]);
