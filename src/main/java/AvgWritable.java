@@ -5,99 +5,97 @@ import java.io.IOException;
 import org.apache.hadoop.io.Writable;
 
 public class AvgWritable implements Writable {
-	public  int sum;
-	public int count;
-	public int max;
-	public int min;
-	public double avg;
-	
-	public AvgWritable() {
-		super();
-	}
-	
-	public AvgWritable(int sum, int count, int max, int min) {
-		super();
-		this.sum = sum;
-		this.count = count;
-		this.max = max;
-		this.min = min;
-		this.avg = 0;
-	}
-	
-	public AvgWritable(int sum, int count, int max, int min, double avg) {
-		super();
-		this.sum = sum;
-		this.count = count;
-		this.max = max;
-		this.min = min;
-		this.avg = avg;
-	}
+    private int count;
+    private int max;
+    private int sum;
+    private int min;
+    private double avg;
 
-	@Override
-	public void readFields(DataInput in) throws IOException {
-		sum = in.readInt();
-		count = in.readInt();
-		max = in.readInt();
-		min = in.readInt();
-	}
-	
-	@Override
-	public void write(DataOutput out) throws IOException {
-		out.writeInt(sum);
-		out.writeInt(count);
-		out.writeInt(max);
-		out.writeInt(min);
-		out.writeDouble(avg);
-	}
+    public AvgWritable() {
+        super();
+    }
 
-	public int getSum() {
-		return sum;
-	}
+    public AvgWritable(int sum, int count, int max, int min) {
+        super();
+        this.sum = sum;
+        this.count = count;
+        this.max = max;
+        this.min = min;
+        this.avg = 0;
+    }
 
-	public void setSum(int sum) {
-		this.sum = sum;
-	}
+    public AvgWritable(int sum, int count, int max, int min, double avg) {
+        super();
+        this.sum = sum;
+        this.count = count;
+        this.max = max;
+        this.min = min;
+        this.avg = avg;
+    }
 
-	public int getCount() {
-		return count;
-	}
+    @Override
+    public void readFields(DataInput in) throws IOException {
+        sum = in.readInt();
+        count = in.readInt();
+        max = in.readInt();
+        min = in.readInt();
+    }
 
-	public void setCount(int count) {
-		this.count = count;
-	}
+    @Override
+    public void write(DataOutput out) throws IOException {
+        out.writeInt(sum);
+        out.writeInt(count);
+        out.writeInt(max);
+        out.writeInt(min);
+        out.writeDouble(avg);
+    }
 
-	public int getMax() {
-		return max;
-	}
+    public int getSum() {
+        return sum;
+    }
 
-	public void setMax(int max) {
-		this.max = max;
-	}
+    public void setSum(int sum) {
+        this.sum = sum;
+    }
 
-	public int getMin() {
-		return min;
-	}
+    public int getCount() {
+        return count;
+    }
 
-	public void setMin(int min) {
-		this.min = min;
-	}
+    public void setCount(int count) {
+        this.count = count;
+    }
 
-	public double getAvg() {
-		return avg;
-	}
+    public int getMax() {
+        return max;
+    }
 
-	public void setAvg(double avg) {
-		this.avg = avg;
-	}
+    public void setMax(int max) {
+        this.max = max;
+    }
 
-	@Override
-	public String toString() {
-		return "AvgWritable [sum=" + sum + ", count=" + count + ", max=" + max + ", min=" + min + ", avg=" + avg + "]";
-	}
+    public int getMin() {
+        return min;
+    }
 
-	
+    public void setMin(int min) {
+        this.min = min;
+    }
 
-	
-	
+    public double getAvg() {
+        return avg;
+    }
+
+    public void setAvg(double avg) {
+        this.avg = avg;
+    }
+
+    @Override
+    public String toString() {
+
+        return "\t" + count + "\t" + avg + "\t" + max + "\t" + min;
+
+    }
+
 
 }

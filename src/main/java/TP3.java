@@ -24,7 +24,7 @@ public class TP3 {
 	static String outputPath;
 	static String tmpPath;
 	
-	static void init() throws FileNotFoundException, IOException {
+	static void init() throws IOException {
 		Properties prop = new Properties();
 		try (FileInputStream input = new FileInputStream("config.properties")) {
 			prop.load(input);
@@ -39,7 +39,12 @@ public class TP3 {
 		init();
 		Configuration conf = new Configuration();
 		FileSystem fs = FileSystem.get(conf);
-		
+		if (args.length > 0) {
+			conf.set("base", args[0]);
+		} else {
+			conf.set("base", "10");
+		}
+
 		Job job = Job.getInstance(conf, "TP3");
 		job.setNumReduceTasks(1);
 		job.setJarByClass(TP3.class);
@@ -52,6 +57,7 @@ public class TP3 {
 		job.setOutputFormatClass(TextOutputFormat.class);
 		job.setInputFormatClass(TextInputFormat.class);
 		FileInputFormat.addInputPath(job, new Path(inputPath));
+		fs.delete(new Path(tmpPath));
 		FileOutputFormat.setOutputPath(job, new Path(tmpPath));
 		job.waitForCompletion(true);
 		
@@ -68,7 +74,8 @@ public class TP3 {
 		job2.setOutputFormatClass(TextOutputFormat.class);
 		job2.setInputFormatClass(TextInputFormat.class);
 		FileInputFormat.addInputPath(job2, new Path(tmpPath));
-		FileOutputFormat.setOutputPath(job2, new Path(outputPath+"_"+dateFormat.format(date)));
+		fs.delete(new Path(outputPath));
+		FileOutputFormat.setOutputPath(job2, new Path(outputPath));
 		fs.deleteOnExit(new Path(tmpPath));
 		System.exit(job2.waitForCompletion(true) ? 0 : 1);
 	}
