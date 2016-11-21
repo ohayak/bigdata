@@ -17,21 +17,21 @@ import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 import org.apache.hadoop.fs.FileSystem;
 
-public class TP3 {
+public class Main{
 	
 	static SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yy_HHmm");
 	static Date date = new Date();
-	static String inputPath;
-	static String outputPath;
-	static String tmpPath;
+	static Path inputPath;
+	static Path outputPath;
+	static Path tmpPath;
 	
 	static void init() throws IOException {
 		Properties prop = new Properties();
 		try (FileInputStream input = new FileInputStream("config.properties")) {
 			prop.load(input);
-			inputPath = prop.getProperty("INPUT_URI");
-			outputPath = prop.getProperty("OUTPUT_URI");
-			tmpPath = prop.getProperty("TMP_URI");
+			inputPath = new Path(prop.getProperty("INPUT_URI"));
+			outputPath = new Path(prop.getProperty("OUTPUT_URI"));
+			tmpPath = new Path(prop.getProperty("TMP_URI"));
 		}
 	}
 	
@@ -48,37 +48,18 @@ public class TP3 {
 
 		Job job = Job.getInstance(conf, "TP3");
 		job.setNumReduceTasks(1);
-		job.setJarByClass(TP3.class);
-		job.setMapperClass(TP3Mapper1.class);
+		job.setJarByClass(Main.class);
+		job.setMapperClass(Mapper.class);
 		job.setMapOutputKeyClass(Text.class);
 		job.setMapOutputValueClass(LongWritable.class);
-		job.setCombinerClass(TP3Reducer1.class);
-		job.setReducerClass(TP3Reducer1.class);
+		job.setReducerClass(Reducer.class);
 		job.setOutputKeyClass(Text.class);
 		job.setOutputValueClass(LongWritable.class);
 		job.setOutputFormatClass(TextOutputFormat.class);
 		job.setInputFormatClass(TextInputFormat.class);
-		FileInputFormat.addInputPath(job, new Path(inputPath));
-		fs.delete(new Path(tmpPath));
-		FileOutputFormat.setOutputPath(job, new Path(tmpPath));
-		job.waitForCompletion(true);
-		
-		Job job2 = Job.getInstance(conf, "TP3");
-		job2.setNumReduceTasks(1);
-		job2.setJarByClass(TP3.class);
-		job2.setMapperClass(TP3Mapper2.class);
-		job2.setMapOutputKeyClass(LongWritable.class);
-		job2.setMapOutputValueClass(AvgWritable.class);
-		job2.setCombinerClass(TP3Reducer2.class);
-		job2.setReducerClass(TP3Reducer2.class);
-		job2.setOutputKeyClass(LongWritable.class);
-		job2.setOutputValueClass(AvgWritable.class);
-		job2.setOutputFormatClass(TextOutputFormat.class);
-		job2.setInputFormatClass(TextInputFormat.class);
-		FileInputFormat.addInputPath(job2, new Path(tmpPath));
-		fs.delete(new Path(outputPath));
-		FileOutputFormat.setOutputPath(job2, new Path(outputPath));
-		fs.deleteOnExit(new Path(tmpPath));
-		System.exit(job2.waitForCompletion(true) ? 0 : 1);
+		FileInputFormat.addInputPath(job, inputPath);
+		fs.delete(outputPath);
+		FileOutputFormat.setOutputPath(job, outputPath);
+		System.exit(job.waitForCompletion(true) ? 0 : 1);
 	}
 }
