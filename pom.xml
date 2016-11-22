@@ -2,9 +2,8 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>bigdata</groupId>
-	<artifactId>tp3-mapreduce</artifactId>
-	<version>0.0.1</version>
-	<name>Minimal MapReduce app skeleton</name>
+	<artifactId>tp4-mapreduce</artifactId>
+	<name>MapReduce app</name>
 	<dependencies>
 		<dependency>
 			<groupId>org.apache.hadoop</groupId>
@@ -33,7 +32,7 @@
 				<configuration>
 					<archive>
 						<manifest>
-							<mainClass>TP3</mainClass>
+							<mainClass>Main</mainClass>
 						</manifest>
 					</archive>
 				</configuration>
@@ -62,4 +61,5 @@
 			</plugin>
 		</plugins>
 	</build>
+	<version>0.0.1</version>
 </project>

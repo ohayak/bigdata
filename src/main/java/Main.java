@@ -24,9 +24,10 @@ public class Main{
 	static Path inputPath;
 	static Path outputPath;
 	static Path tmpPath;
+	static Properties prop;
 	
 	static void init() throws IOException {
-		Properties prop = new Properties();
+		prop = new Properties();
 		try (FileInputStream input = new FileInputStream("config.properties")) {
 			prop.load(input);
 			inputPath = new Path(prop.getProperty("INPUT_URI"));
@@ -40,26 +41,26 @@ public class Main{
 		init();
 		Configuration conf = new Configuration();
 		FileSystem fs = FileSystem.get(conf);
-		if (args.length > 0) {
-			conf.set("base", args[0]);
-		} else {
-			conf.set("base", "10");
-		}
-
-		Job job = Job.getInstance(conf, "TP3");
+		
+		Job job = Job.getInstance(conf, "TP4");
+		conf.setLong("split_length", Long.parseLong(prop.getProperty("SPLIT_LENGTH")));
 		job.setNumReduceTasks(1);
 		job.setJarByClass(Main.class);
-		job.setMapperClass(Mapper.class);
-		job.setMapOutputKeyClass(Text.class);
-		job.setMapOutputValueClass(LongWritable.class);
-		job.setReducerClass(Reducer.class);
-		job.setOutputKeyClass(Text.class);
-		job.setOutputValueClass(LongWritable.class);
+		
+		job.setMapperClass(TPMapper.class);
+		job.setMapOutputKeyClass(LongWritable.class);
+		job.setMapOutputValueClass(Point2DWritable.class);
+		
+		job.setReducerClass(TPReducer.class);
+		job.setOutputKeyClass(LongWritable.class);
+		job.setOutputValueClass(Point2DWritable.class);
+		
 		job.setOutputFormatClass(TextOutputFormat.class);
-		job.setInputFormatClass(TextInputFormat.class);
-		FileInputFormat.addInputPath(job, inputPath);
 		fs.delete(outputPath);
 		FileOutputFormat.setOutputPath(job, outputPath);
+		job.setInputFormatClass(RandomPointInputFormat.class);
+	
+		
 		System.exit(job.waitForCompletion(true) ? 0 : 1);
 	}
 }

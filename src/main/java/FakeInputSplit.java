@@ -4,9 +4,16 @@ import org.apache.hadoop.mapreduce.InputSplit;
 
 public class FakeInputSplit extends InputSplit{
 
+	private long length;
+	private long offset;
+
+	public FakeInputSplit(long len, long offset) {
+		this.length = len;
+		this.offset = offset;
+	}
 	@Override
 	public long getLength() throws IOException, InterruptedException {
-		return 10;
+		return length;
 	}
 
 	@Override
@@ -15,7 +22,7 @@ public class FakeInputSplit extends InputSplit{
 	}
 
 	public long getOffset() {
-		return 10;
+		return offset;
 	}
 
 }

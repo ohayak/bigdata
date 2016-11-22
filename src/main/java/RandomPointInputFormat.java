@@ -2,6 +2,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.DoubleWritable;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.mapreduce.InputFormat;
@@ -19,10 +20,12 @@ public class RandomPointInputFormat extends InputFormat<IntWritable, Point2DWrit
 	}
 
 	@Override
-	public List getSplits(JobContext arg0) throws IOException, InterruptedException {
+	public List getSplits(JobContext context) throws IOException, InterruptedException {
+		Configuration conf = context.getConfiguration();
+		long len = conf.getLong("split_length", 1000);
 		List<FakeInputSplit> list = new ArrayList<FakeInputSplit>();
 		for (int i = 0 ; i < 20; i++) {
-			list.add(new FakeInputSplit());
+			list.add(new FakeInputSplit(len, i*len));
 		}
 		return list;
 	}
