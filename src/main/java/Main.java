@@ -7,6 +7,7 @@ import java.text.SimpleDateFormat;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.io.BooleanWritable;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
@@ -44,16 +45,17 @@ public class Main{
 		
 		Job job = Job.getInstance(conf, "TP4");
 		conf.setLong("split_length", Long.parseLong(prop.getProperty("SPLIT_LENGTH")));
+		conf.setLong("split_number",Long.parseLong(prop.getProperty("SPLIT_NUMBER")));
 		job.setNumReduceTasks(1);
 		job.setJarByClass(Main.class);
 		
 		job.setMapperClass(TPMapper.class);
-		job.setMapOutputKeyClass(LongWritable.class);
-		job.setMapOutputValueClass(Point2DWritable.class);
+		job.setMapOutputKeyClass(Text.class);
+		job.setMapOutputValueClass(BooleanWritable.class);
 		
 		job.setReducerClass(TPReducer.class);
-		job.setOutputKeyClass(LongWritable.class);
-		job.setOutputValueClass(Point2DWritable.class);
+		job.setOutputKeyClass(Text.class);
+		job.setOutputValueClass(LongWritable.class);
 		
 		job.setOutputFormatClass(TextOutputFormat.class);
 		fs.delete(outputPath);

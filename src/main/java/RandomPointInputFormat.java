@@ -20,11 +20,12 @@ public class RandomPointInputFormat extends InputFormat<IntWritable, Point2DWrit
 	}
 
 	@Override
-	public List getSplits(JobContext context) throws IOException, InterruptedException {
+	public List<InputSplit> getSplits(JobContext context) throws IOException, InterruptedException {
 		Configuration conf = context.getConfiguration();
 		long len = conf.getLong("split_length", 1000);
-		List<FakeInputSplit> list = new ArrayList<FakeInputSplit>();
-		for (int i = 0 ; i < 20; i++) {
+		long splitNumber = conf.getLong("split_number", 50);
+		List<InputSplit> list = new ArrayList<InputSplit>();
+		for (int i = 0 ; i < splitNumber; i++) {
 			list.add(new FakeInputSplit(len, i*len));
 		}
 		return list;
