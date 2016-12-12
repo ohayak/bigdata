@@ -7,12 +7,13 @@ import org.apache.hadoop.mapreduce.InputSplit;
 import org.apache.hadoop.mapreduce.RecordReader;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
 
-public class RandomPointReader extends RecordReader {
+public class RandomPointReader extends RecordReader<LongWritable, Point2DWritable> {
 
 	private Random rand = new Random();
 	private LongWritable key;
+	private long offset = 0;
 	private Point2DWritable value;
-	private long maxSplits;
+	private long nbPoints;
 
 
 	@Override
@@ -27,14 +28,15 @@ public class RandomPointReader extends RecordReader {
 
 	@Override
 	public float getProgress() throws IOException, InterruptedException {
-		return key.get();
+		return (key.get()-offset)/nbPoints;
 	}
 
 	@Override
 	public void initialize(InputSplit genericSplit, TaskAttemptContext context)throws IOException, InterruptedException {
 		FakeInputSplit split = (FakeInputSplit) genericSplit;
-		maxSplits = split.getLength();
+		nbPoints = split.getLength();
 		key = new LongWritable(split.getOffset());
+		offset = split.getOffset();
 		value = new Point2DWritable(rand.nextDouble(), rand.nextDouble());
 	}
 
@@ -42,10 +44,7 @@ public class RandomPointReader extends RecordReader {
 	public boolean nextKeyValue() throws IOException, InterruptedException {
 		key.set(key.get()+1);
 		value = new Point2DWritable(rand.nextDouble(), rand.nextDouble());
-		if (key.get() < maxSplits )
-			return true;
-		else 
-			return false;
+		return key.get() < nbPoints ;
 	}
 
 	@Override

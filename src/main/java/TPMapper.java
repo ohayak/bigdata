@@ -12,7 +12,7 @@ public class TPMapper extends Mapper<LongWritable, Point2DWritable,Text, Boolean
 		try {
 			double  x = value.getX();
 			double y = value.getY();
-			if(Math.pow(value.getX(),2)+Math.pow(value.getY(),2)<=1)
+			if(Math.pow(value.getX(),2)+Math.pow(value.getY(),2)<1)
 				context.write(new Text("R") ,new BooleanWritable(true));
 			else
 				context.write(new Text("R"),new BooleanWritable(false));	

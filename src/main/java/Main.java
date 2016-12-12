@@ -8,6 +8,7 @@ import java.text.SimpleDateFormat;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.BooleanWritable;
+import org.apache.hadoop.io.DoubleWritable;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
@@ -55,11 +56,12 @@ public class Main{
 		
 		job.setReducerClass(TPReducer.class);
 		job.setOutputKeyClass(Text.class);
-		job.setOutputValueClass(LongWritable.class);
+		job.setOutputValueClass(DoubleWritable.class);
 		
 		job.setOutputFormatClass(TextOutputFormat.class);
 		fs.delete(outputPath);
 		FileOutputFormat.setOutputPath(job, outputPath);
+		
 		job.setInputFormatClass(RandomPointInputFormat.class);
 	
 		
