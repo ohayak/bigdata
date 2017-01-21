@@ -1,0 +1,4 @@
+
+public enum Parameter {
+	RANK, LASTNAME, FIRSTNAME, TIME, DISTANCE, CATEGORY
+}

@@ -1,3 +1,5 @@
+import org.apache.commons.lang.mutable.MutableBoolean;
+import org.apache.commons.lang.mutable.MutableInt;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FileSystem;
@@ -19,13 +21,16 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
+import java.util.EnumMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.regex.Pattern;
 import java.util.zip.ZipInputStream;
 
 public class CSVLineRecordReader extends RecordReader<LongWritable, RunnerWritable> {
 	public static final String DELIMITER = "\"";
 	public static final String SEPARATOR = ",";
-
+	
 	private long start;
 	private long pos;
 	private long end;
@@ -35,6 +40,8 @@ public class CSVLineRecordReader extends RecordReader<LongWritable, RunnerWritab
 	private String delimiter;
 	private String separator;
 	private InputStream is;
+	private EnumMap<Parameter, MutableBoolean> runnerParam;
+	private EnumMap<Parameter, MutableInt> paramPos;
 
 	public CSVLineRecordReader() {
 	}
@@ -160,15 +167,46 @@ public class CSVLineRecordReader extends RecordReader<LongWritable, RunnerWritab
 		this.pos = start;
 		
 		//Read first line to extract column names
-		List<Text> line = new ArrayList<Text>(0);
-		readLine(line);
+		initColumns();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.apache.hadoop.mapreduce.RecordReader#nextKeyValue()
-	 */
+	private void initColumns() throws IOException {
+		List<Text> line = new ArrayList<Text>(0);
+		readLine(line);
+		for (MutableBoolean entry : runnerParam.values()) {
+			entry.setValue(false);
+		}
+		
+		for (int i = 0; i < line.size(); i++) {
+			 if (line.get(i).toString().toLowerCase().matches("name|nom|last name")) {
+				 runnerParam.get(Parameter.LASTNAME).setValue(true);
+				 paramPos.get(Parameter.LASTNAME).setValue(i);
+			 }
+			 if (line.get(i).toString().toLowerCase().matches("first name|prénom|prenom")) {
+				 runnerParam.get(Parameter.FIRSTNAME).setValue(true);
+				 paramPos.get(Parameter.FIRSTNAME).setValue(i);
+			 }
+			 if (line.get(i).toString().toLowerCase().matches(".*categ.*")) {
+				 runnerParam.get(Parameter.CATEGORY).setValue(true);
+				 paramPos.get(Parameter.CATEGORY).setValue(i);
+			 }
+			 if (line.get(i).toString().toLowerCase().matches(".*temp.*|time|last name")) {
+				 runnerParam.get(Parameter.TIME).setValue(true);
+				 paramPos.get(Parameter.TIME).setValue(i);
+			 }
+			 if (line.get(i).toString().toLowerCase().matches(".*dist.*")) {
+				 runnerParam.get(Parameter.DISTANCE).setValue(true);
+				 paramPos.get(Parameter.DISTANCE).setValue(i);
+			 }
+			 if (line.get(i).toString().toLowerCase().matches(".*ran.*")) {
+				 runnerParam.get(Parameter.RANK).setValue(true);
+				 paramPos.get(Parameter.RANK).setValue(i);
+			 }
+		}
+		
+	}
+
+
 	public boolean nextKeyValue() throws IOException {
 		if (key == null) {
 			key = new LongWritable();
@@ -194,6 +232,10 @@ public class CSVLineRecordReader extends RecordReader<LongWritable, RunnerWritab
 				return true;
 			}
 		}
+	}
+
+	private void populateRunner(List<Text> line, RunnerWritable value2) {
+		
 	}
 
 	/*

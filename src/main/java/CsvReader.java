@@ -33,7 +33,7 @@ public class CsvReader extends RecordReader<LongWritable, RunnerWritable> {
 
 	@Override
 	public void initialize(InputSplit genericSplit, TaskAttemptContext context)throws IOException, InterruptedException {
-		FakeInputSplit split = (FakeInputSplit) genericSplit;
+		CSVInputSplit split = (CSVInputSplit) genericSplit;
 		nbPoints = split.getLength();
 		key = new LongWritable(split.getOffset());
 		offset = split.getOffset();

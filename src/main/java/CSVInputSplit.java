@@ -5,12 +5,12 @@ import java.io.IOException;
 import org.apache.hadoop.io.Writable;
 import org.apache.hadoop.mapreduce.InputSplit;
 
-public class FakeInputSplit extends InputSplit implements Writable{
+public class CSVInputSplit extends InputSplit implements Writable{
 
 	private long length;
 	private long offset;
-	public FakeInputSplit() {}
-	public FakeInputSplit(long len, long offset) {
+	public CSVInputSplit() {}
+	public CSVInputSplit(long len, long offset) {
 		this.length = len;
 		this.offset = offset;
 	}

@@ -27,7 +27,7 @@ public class RandomPointInputFormat extends InputFormat<LongWritable, RunnerWrit
 		long splitNumber = conf.getLong("split_number", 1024);
 		List<InputSplit> list = new ArrayList<InputSplit>();
 		for (int i = 0 ; i < splitNumber; i++) {
-			list.add(new FakeInputSplit(len, i*len));
+			list.add(new CSVInputSplit(len, i*len));
 		}
 		return list;
 	}
