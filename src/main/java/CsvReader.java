@@ -7,12 +7,12 @@ import org.apache.hadoop.mapreduce.InputSplit;
 import org.apache.hadoop.mapreduce.RecordReader;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
 
-public class RandomPointReader extends RecordReader<LongWritable, Point2DWritable> {
+public class CsvReader extends RecordReader<LongWritable, RunnerWritable> {
 
 	private Random rand = new Random();
 	private LongWritable key;
 	private long offset = 0;
-	private Point2DWritable value;
+	private RunnerWritable value;
 	private long nbPoints;
 
 
@@ -22,7 +22,7 @@ public class RandomPointReader extends RecordReader<LongWritable, Point2DWritabl
 	}
 
 	@Override
-	public Point2DWritable getCurrentValue() throws IOException, InterruptedException {
+	public RunnerWritable getCurrentValue() throws IOException, InterruptedException {
 		return value;
 	}
 
@@ -37,13 +37,13 @@ public class RandomPointReader extends RecordReader<LongWritable, Point2DWritabl
 		nbPoints = split.getLength();
 		key = new LongWritable(split.getOffset());
 		offset = split.getOffset();
-		value = new Point2DWritable(rand.nextDouble(), rand.nextDouble());
+		value = new RunnerWritable(rand.nextDouble(), rand.nextDouble());
 	}
 
 	@Override
 	public boolean nextKeyValue() throws IOException, InterruptedException {
 		key.set(key.get()+1);
-		value = new Point2DWritable(rand.nextDouble(), rand.nextDouble());
+		value = new RunnerWritable(rand.nextDouble(), rand.nextDouble());
 		return key.get() < nbPoints ;
 	}
 

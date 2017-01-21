@@ -12,12 +12,12 @@ import org.apache.hadoop.mapreduce.JobContext;
 import org.apache.hadoop.mapreduce.RecordReader;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
 
-public class RandomPointInputFormat extends InputFormat<LongWritable, Point2DWritable> {
+public class RandomPointInputFormat extends InputFormat<LongWritable, RunnerWritable> {
 
 	@Override
 	public RecordReader createRecordReader(InputSplit arg0, TaskAttemptContext arg1)
 			throws IOException, InterruptedException {
-		return new RandomPointReader();
+		return new CsvReader();
 	}
 
 	@Override
