@@ -28,8 +28,8 @@ import java.util.regex.Pattern;
 import java.util.zip.ZipInputStream;
 
 public class CSVLineRecordReader extends RecordReader<LongWritable, RunnerWritable> {
-	public static final String DELIMITER = "\"";
-	public static final String SEPARATOR = ",";
+	public static final String DEFAULT_DELIMITER = "\"";
+	public static final String DEFAULT_SEPARATOR = ",";
 	
 	private long start;
 	private long pos;
@@ -57,6 +57,23 @@ public class CSVLineRecordReader extends RecordReader<LongWritable, RunnerWritab
 	 */
 	public CSVLineRecordReader(InputStream is, Configuration conf) throws IOException {
 		init(is, conf);
+	}
+	
+	/**
+	 * reads configuration set in the runner, setting delimiter and separator to
+	 * be used to process the CSV file .
+	 * 
+	 * @param is
+	 *            - the input stream
+	 * @param conf
+	 *            - hadoop conf
+	 * @throws IOException
+	 */
+	public void init(InputStream is, Configuration conf) throws IOException {
+		this.delimiter =  DEFAULT_DELIMITER;
+		this.separator = DEFAULT_SEPARATOR;
+		this.is = is;
+		this.in = new BufferedReader(new InputStreamReader(is));
 	}
 
 	/**
@@ -162,9 +179,7 @@ public class CSVLineRecordReader extends RecordReader<LongWritable, RunnerWritab
 		if (start != 0) {
 			fileIn.seek(start);
 		}
-		this.is = fileIn;
-		this.in = new BufferedReader(new InputStreamReader(is));
-		this.pos = start;
+		init(is, job);
 		
 		//Read first line to extract column names
 		initColumns();
@@ -172,11 +187,10 @@ public class CSVLineRecordReader extends RecordReader<LongWritable, RunnerWritab
 
 	private void initColumns() throws IOException {
 		List<Text> line = new ArrayList<Text>(0);
-		readLine(line);
 		for (MutableBoolean entry : runnerParam.values()) {
 			entry.setValue(false);
 		}
-		
+		readLine(line);
 		for (int i = 0; i < line.size(); i++) {
 			 if (line.get(i).toString().toLowerCase().matches("name|nom|last name")) {
 				 runnerParam.get(Parameter.LASTNAME).setValue(true);
@@ -203,7 +217,6 @@ public class CSVLineRecordReader extends RecordReader<LongWritable, RunnerWritab
 				 paramPos.get(Parameter.RANK).setValue(i);
 			 }
 		}
-		
 	}
 
 
