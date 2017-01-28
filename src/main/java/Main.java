@@ -1,5 +1,8 @@
 import java.util.Date;
 import java.util.Properties;
+import java.util.logging.FileHandler;
+import java.util.logging.Logger;
+import java.util.logging.SimpleFormatter;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -27,7 +30,9 @@ public class Main{
 	static Path outputPath;
 	static Path tmpPath;
 	static Properties prop;
-	
+	static Logger logger = Logger.getLogger("Log");  
+    static FileHandler fh;  
+
 	static void init() throws IOException {
 		prop = new Properties();
 		try (FileInputStream input = new FileInputStream("config.properties")) {
@@ -36,6 +41,18 @@ public class Main{
 			outputPath = new Path(prop.getProperty("OUTPUT_URI"));
 			tmpPath = new Path(prop.getProperty("TMP_URI"));
 		}
+		try {
+	        // This block configure the logger with handler and formatter  
+	        fh = new FileHandler("mapreduce.log");  
+	        logger.addHandler(fh);
+	        SimpleFormatter formatter = new SimpleFormatter();  
+	        fh.setFormatter(formatter); 
+	        logger.setUseParentHandlers(false);
+	    } catch (SecurityException e) {  
+	        e.printStackTrace();  
+	    } catch (IOException e) {  
+	        e.printStackTrace();  
+	    }
 	}
 	
 	public static void main(String[] args) throws Exception {
@@ -44,25 +61,26 @@ public class Main{
 		Configuration conf = new Configuration();
 		FileSystem fs = FileSystem.get(conf);
 		
-		Job job = Job.getInstance(conf, "TP4");
-		conf.setLong("split_length", Long.parseLong(prop.getProperty("SPLIT_LENGTH")));
-		conf.setLong("split_number",Long.parseLong(prop.getProperty("SPLIT_NUMBER")));
+		Job job = Job.getInstance(conf, "PROJECT");
 		job.setNumReduceTasks(1);
 		job.setJarByClass(Main.class);
 		
 		job.setMapperClass(TPMapper.class);
-		job.setMapOutputKeyClass(Text.class);
-		job.setMapOutputValueClass(BooleanWritable.class);
+		job.setMapOutputKeyClass(LongWritable.class);
+		job.setMapOutputValueClass(Text.class);
 		
 		job.setReducerClass(TPReducer.class);
-		job.setOutputKeyClass(Text.class);
-		job.setOutputValueClass(DoubleWritable.class);
+		job.setOutputKeyClass(LongWritable.class);
+		job.setOutputValueClass(Text.class);
 		
+		job.setInputFormatClass(CSVLineInputFormat.class);
+		CSVLineInputFormat.setInputPaths(job, inputPath);
+		CSVLineInputFormat.setNumLinesPerSplit(job, 10000);
 		job.setOutputFormatClass(TextOutputFormat.class);
 		fs.delete(outputPath);
 		FileOutputFormat.setOutputPath(job, outputPath);
 		
-		job.setInputFormatClass(RandomPointInputFormat.class);
+	
 	
 		
 		System.exit(job.waitForCompletion(true) ? 0 : 1);

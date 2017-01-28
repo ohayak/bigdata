@@ -6,7 +6,7 @@ import org.apache.hadoop.io.WritableComparable;
 
 
 
-public class RunnerWritable implements WritableComparable {
+public class RunnerWritable implements WritableComparable<Object> {
 	private int  rank;
 	private String lastname;
 	private String firstname;

@@ -27,15 +27,15 @@ import org.apache.hadoop.mapreduce.lib.input.FileSplit;
  */
 
 public class CSVLineInputFormat extends FileInputFormat<LongWritable, RunnerWritable> {
-	public static final String LINES_PER_MAP = "linespermap";
+	public static final String LINES_PER_MAP = "CSVLineInputFormat.LinesPerMap";
 	public static final int DEFAULT_LINES_PER_MAP = 1;
 	@Override
 	public RecordReader<LongWritable, RunnerWritable> createRecordReader(InputSplit split, TaskAttemptContext context)
 			throws IOException, InterruptedException {
-		String quote = CSVLineRecordReader.DEFAULT_DELIMITER;
+		String delimeter = CSVLineRecordReader.DEFAULT_DELIMITER;
 		String separator = CSVLineRecordReader.DEFAULT_SEPARATOR;
-		if (null == quote || null == separator) {
-			throw new IOException("CSVTextInputFormat: missing parameter delimiter/separator");
+		if (null == delimeter || null == separator) {
+			throw new IOException("CSVLineInputFormat: missing parameter delimiter/separator");
 		}
 		context.setStatus(split.toString());
 		return new CSVLineRecordReader();
@@ -45,6 +45,7 @@ public class CSVLineInputFormat extends FileInputFormat<LongWritable, RunnerWrit
 	public List<InputSplit> getSplits(JobContext context) throws IOException {
 		List<InputSplit> splits = new ArrayList<InputSplit>();
 		int numLinesPerSplit = getNumLinesPerSplit(context);
+		// Take input file (a directory containing csv files) and create even splits
 		for (FileStatus status : listStatus(context)) {
 			List<FileSplit> fileSplits = getSplitsForFile(status, context.getConfiguration(), numLinesPerSplit);
 			splits.addAll(fileSplits);

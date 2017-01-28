@@ -6,16 +6,11 @@ import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Mapper;
 
-public class TPMapper extends Mapper<LongWritable, RunnerWritable,Text, BooleanWritable>{
+public class TPMapper extends Mapper<LongWritable, RunnerWritable, LongWritable, Text>{
 
 	public void map(LongWritable key, RunnerWritable value, Context context) throws IOException, InterruptedException {
 		try {
-			double  x = value.getX();
-			double y = value.getY();
-			if(Math.pow(value.getX(),2)+Math.pow(value.getY(),2)<1)
-				context.write(new Text("R") ,new BooleanWritable(true));
-			else
-				context.write(new Text("R"),new BooleanWritable(false));	
+				context.write(key,new Text(value.toString()));	
 		}
 		catch (NumberFormatException e) {
 			e.printStackTrace();
