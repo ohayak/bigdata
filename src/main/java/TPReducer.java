@@ -7,9 +7,9 @@ import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Reducer;
 
-public class TPReducer extends Reducer<LongWritable, Text, LongWritable, Text>{
+public class TPReducer extends Reducer<Text, Text, Text, Text>{
 
-	public void reduce(LongWritable key, Text  value, Context context) throws IOException, InterruptedException {
+	public void reduce(Text key, Text  value, Context context) throws IOException, InterruptedException {
 		try {
 			context.write(key,value);
 		}

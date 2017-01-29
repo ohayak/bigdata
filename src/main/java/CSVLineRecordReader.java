@@ -15,7 +15,6 @@ import org.apache.hadoop.mapreduce.RecordReader;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.apache.hadoop.mapreduce.lib.input.FileSplit;
 
-import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -25,149 +24,56 @@ import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.EnumMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.logging.Logger;
-import java.util.regex.Pattern;
-import java.util.zip.ZipInputStream;
 
-public class CSVLineRecordReader extends RecordReader<LongWritable, RunnerWritable> {
+public class CSVLineRecordReader extends RecordReader<Text, RunnerWritable> {
 	private static final Log LOG = LogFactory.getLog(CSVLineRecordReader.class);
 	public static final String DEFAULT_DELIMITER = "\n";
-	public static final String DEFAULT_SEPARATOR = ";";
-
+	public static final String DEFAULT_SEPARATOR = ";|,";
+	
 	private CompressionCodecFactory compressionCodecs = null;
 	private long start;
 	private long pos;
 	private long end;
-	protected Reader in;
-	private LongWritable key = null;
+	protected BufferedReader in;
+	private Text key = null;
 	private RunnerWritable value = null;
-	private String delimiter;
-	private String separator;
+	private long linesRead;
 	private InputStream is;
 	private EnumMap<Parameter, MutableBoolean> runnerParam;
 	private EnumMap<Parameter, MutableInt> paramPos;
+	private String keyPrefix;
 
 	public CSVLineRecordReader() {
 	}
-
-	/**
-	 * Constructor to be called from FileInputFormat.createRecordReader
-	 * 
-	 * @param is
-	 *            - the input stream
-	 * @param conf
-	 *            - hadoop conf
-	 * @throws IOException
-	 */
+	
 	public CSVLineRecordReader(InputStream is, Configuration conf) throws IOException {
 		init(is, conf);
 	}
-
-	/**
-	 * reads configuration set in the runner, setting delimiter and separator to
-	 * be used to process the CSV file .
-	 * 
-	 * @param is
-	 *            - the input stream
-	 * @param conf
-	 *            - hadoop conf
-	 * @throws IOException
-	 */
 	public void init(InputStream is, Configuration conf) throws IOException {
-		this.delimiter = DEFAULT_DELIMITER;
-		this.separator = DEFAULT_SEPARATOR;
 		this.is = is;
 		this.in = new BufferedReader(new InputStreamReader(is));
+		linesRead = 0;
 	}
 
-	/**
-	 * Parses a line from the CSV, from the current stream position. It stops
-	 * parsing when it finds a new line char outside two delimiters
-	 * 
-	 * @param values
-	 *            List of column values parsed from the current CSV line
-	 * @return number of chars processed from the stream
-	 * @throws IOException
-	 */
 	protected int readLine(List<Text> values) throws IOException {
 		values.clear();// Empty value columns list
-		char c;
-		int numRead = 0;
-		boolean insideQuote = false;
-		StringBuffer sb = new StringBuffer();
-		int i;
-		int quoteOffset = 0, delimiterOffset = 0;
-		// Reads each char from input stream unless eof was reached
-		while ((i = in.read()) != -1) {
-			c = (char) i;
-			numRead++;
-			sb.append(c);
-			// Check quotes, as delimiter inside quotes don't count
-			if (c == delimiter.charAt(quoteOffset)) {
-				quoteOffset++;
-				if (quoteOffset >= delimiter.length()) {
-					insideQuote = !insideQuote;
-					quoteOffset = 0;
-				}
-			} else {
-				quoteOffset = 0;
-			}
-			// Check delimiters, but only those outside of quotes
-			if (!insideQuote) {
-				if (c == separator.charAt(delimiterOffset)) {
-					delimiterOffset++;
-					if (delimiterOffset >= separator.length()) {
-						foundDelimiter(sb, values, true);
-						delimiterOffset = 0;
-					}
-				} else {
-					delimiterOffset = 0;
-				}
-				// A new line outside of a quote is a real csv line breaker
-				if (c == '\n') {
-					break;
-				}
-			}
+		String line = "";
+		int numRead;
+		if (in.ready()) {
+			line = in.readLine();
 		}
-		foundDelimiter(sb, values, false);
+		if (line == null) 
+			numRead = 0;
+		else {
+			numRead = line.length();
+			linesRead++;
+		}
+		
+		for (String txt : line.split(DEFAULT_SEPARATOR)) {
+			values.add(new Text(txt));
+		}
 		return numRead;
-	}
-
-	/**
-	 * Helper function that adds a new value to the values list passed as
-	 * argument.
-	 * 
-	 * @param sb
-	 *            StringBuffer that has the value to be added
-	 * @param values
-	 *            values list
-	 * @param takeDelimiterOut
-	 *            should be true when called in the middle of the line, when a
-	 *            delimiter was found, and false when sb contains the line
-	 *            ending
-	 * @throws UnsupportedEncodingException
-	 */
-	protected void foundDelimiter(StringBuffer sb, List<Text> values, boolean takeDelimiterOut)
-			throws UnsupportedEncodingException {
-
-		// remove trailing LF
-		if (sb.length() > 0 && sb.charAt(sb.length() - 1) == '\n') {
-			sb.deleteCharAt(sb.length() - 1);
-		}
-
-		// Found a real delimiter
-		Text text = new Text();
-		String val = (takeDelimiterOut) ? sb.substring(0, sb.length() - separator.length()) : sb.toString();
-		if (val.startsWith(delimiter) && val.endsWith(delimiter)) {
-			val = (val.length() - (2 * delimiter.length()) > 0)
-					? val.substring(delimiter.length(), val.length() - delimiter.length()) : "";
-		}
-		text.append(val.getBytes("UTF-8"), 0, val.length());
-		values.add(text);
-		// Empty string buffer
-		sb.setLength(0);
 	}
 
 	public void initialize(InputSplit genericSplit, TaskAttemptContext context) throws IOException {
@@ -177,6 +83,9 @@ public class CSVLineRecordReader extends RecordReader<LongWritable, RunnerWritab
 		start = split.getStart();
 		end = start + split.getLength();
 		final Path file = split.getPath();
+		this.keyPrefix = file.getName();
+		LOG.warn(file.getName());
+		// TODO get race name from file name
 		compressionCodecs = new CompressionCodecFactory(job);
 		final CompressionCodec codec = compressionCodecs.getCodec(file);
 
@@ -195,7 +104,6 @@ public class CSVLineRecordReader extends RecordReader<LongWritable, RunnerWritab
 		}
 		this.pos = start;
 		init(is, job);
-
 		// Read first line to extract column names
 		initColumns();
 	}
@@ -243,28 +151,26 @@ public class CSVLineRecordReader extends RecordReader<LongWritable, RunnerWritab
 
 	public boolean nextKeyValue() throws IOException {
 		if (key == null) {
-			key = new LongWritable();
+			key = new Text();
 		}
-		key.set(pos);
-
-		while (true) {
-			if (pos >= end)
+		if (pos >= end)
+			return false;
+		int newSize = 0;
+		List<Text> line = new ArrayList<Text>(0);
+		newSize = readLine(line);
+		pos += newSize;
+		if (newSize == 0) {
+			key = null;
+			value = null;
+			return false;
+		} else {
+			try {
+				value = generateRunner(line);
+			} catch (Exception e) {
 				return false;
-			int newSize = 0;
-			List<Text> line = new ArrayList<Text>(0);
-			newSize = readLine(line);
-			for (Text text : line) {
-				System.out.println(text.toString());
 			}
-			value = generateRunner(line);
-			pos += newSize;
-			if (newSize == 0) {
-				key = null;
-				value = null;
-				return false;
-			} else {
-				return true;
-			}
+			key.set(this.keyPrefix+linesRead);
+			return true;
 		}
 	}
 
@@ -319,6 +225,11 @@ public class CSVLineRecordReader extends RecordReader<LongWritable, RunnerWritab
 				long mm = Long.parseLong(tokens[1]);
 				long ss = Long.parseLong(tokens[2]);
 				time = hh*3600+mm*60+ss;
+			} else if (val.matches("[0-9]+[:h][0-9]+")) {
+				String[] tokens = val.split(":|m|h");
+				long hh = Long.parseLong(tokens[0]);
+				long mm = Long.parseLong(tokens[1]);
+				time = hh*3600+mm*60;
 			}
 			rw.setTimeInSec(time);
 		}
@@ -361,7 +272,7 @@ public class CSVLineRecordReader extends RecordReader<LongWritable, RunnerWritab
 	 * @see org.apache.hadoop.mapreduce.RecordReader#getCurrentKey()
 	 */
 	@Override
-	public LongWritable getCurrentKey() {
+	public Text getCurrentKey() {
 		return key;
 	}
 

@@ -6,9 +6,9 @@ import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Mapper;
 
-public class TPMapper extends Mapper<LongWritable, RunnerWritable, LongWritable, Text>{
+public class TPMapper extends Mapper<	Text, RunnerWritable, Text, Text>{
 
-	public void map(LongWritable key, RunnerWritable value, Context context) throws IOException, InterruptedException {
+	public void map(Text key, RunnerWritable value, Context context) throws IOException, InterruptedException {
 		try {
 				context.write(key,new Text(value.toString()));	
 		}

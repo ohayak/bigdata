@@ -66,16 +66,15 @@ public class Main{
 		job.setJarByClass(Main.class);
 		
 		job.setMapperClass(TPMapper.class);
-		job.setMapOutputKeyClass(LongWritable.class);
+		job.setMapOutputKeyClass(Text.class);
 		job.setMapOutputValueClass(Text.class);
 		
 		job.setReducerClass(TPReducer.class);
-		job.setOutputKeyClass(LongWritable.class);
+		job.setOutputKeyClass(Text.class);
 		job.setOutputValueClass(Text.class);
 		
 		job.setInputFormatClass(CSVLineInputFormat.class);
 		CSVLineInputFormat.setInputPaths(job, inputPath);
-		CSVLineInputFormat.setNumLinesPerSplit(job, 10000);
 		job.setOutputFormatClass(TextOutputFormat.class);
 		fs.delete(outputPath);
 		FileOutputFormat.setOutputPath(job, outputPath);
