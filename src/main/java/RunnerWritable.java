@@ -16,6 +16,7 @@ public class RunnerWritable implements WritableComparable<Object> {
 	private long timeInSec;
 	private Gender gender;
 	private Category category;
+	private int year;
 	
 	public RunnerWritable() {
 		
@@ -148,6 +149,14 @@ public class RunnerWritable implements WritableComparable<Object> {
 		return "RunnerWritable [rank=" + rank + ", lastname=" + lastname + ", firstname=" + firstname + ", clubName="
 				+ clubName + ", raceName=" + raceName + ", distance=" + distance + ", timeInSec=" + timeInSec
 				+ ", gender=" + gender + ", category=" + category + "]";
+	}
+
+	public void setYear(int year) {
+		this.year = year;
+	}
+	
+	public int getYear() {
+		return year;
 	}
 	
 }
