@@ -21,7 +21,6 @@ public class TopKclub extends Configured implements Tool{
 
 	private static class TopKMapper extends Mapper<Text,RunnerWritable,Text, BooleanWritable > {
 
-		private TreeMap<Double, String> topk = new TreeMap<Double, String>();
 		private int k = 10;
 		private int distance;
 		private String gender;

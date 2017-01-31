@@ -18,6 +18,8 @@ public class RunnerWritable implements WritableComparable<Object> {
 	private Category category;
 	private int year;
 	
+
+
 	public RunnerWritable() {
 		
 	}
@@ -115,6 +117,7 @@ public class RunnerWritable implements WritableComparable<Object> {
 		out.writeUTF(firstname);
 		out.writeUTF(clubName);
 		out.writeUTF(raceName);
+		out.writeInt(year);
 		out.writeInt(distance);
 		out.writeLong(timeInSec);
 		out.writeUTF(gender.toString());
@@ -128,6 +131,7 @@ public class RunnerWritable implements WritableComparable<Object> {
 		firstname = in.readUTF();
 		clubName = in.readUTF();
 		raceName = in.readUTF();
+		year = in.readInt();
 		distance = in.readInt();
 		timeInSec = in.readLong();
 		gender = Gender.valueOf(in.readUTF());
@@ -147,7 +151,7 @@ public class RunnerWritable implements WritableComparable<Object> {
 	@Override
 	public String toString() {
 		return "RunnerWritable [rank=" + rank + ", lastname=" + lastname + ", firstname=" + firstname + ", clubName="
-				+ clubName + ", raceName=" + raceName + ", distance=" + distance + ", timeInSec=" + timeInSec
+				+ clubName + ", raceName=" + raceName +", year="+ year+ ", distance=" + distance + ", timeInSec=" + timeInSec
 				+ ", gender=" + gender + ", category=" + category + "]";
 	}
 

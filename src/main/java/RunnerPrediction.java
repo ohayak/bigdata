@@ -86,7 +86,7 @@ public class RunnerPrediction extends Configured implements Tool {
 			sec_step = conf.getInt("step", 10);
 			distance = conf.getInt("D", 10);
 			gender = conf.getStrings("G", new String[]{"MALE|FEMALE"})[0];
-			category = conf.getStrings("C", new String[]{"OTHER"})[0];
+			category = conf.getStrings("C", new String[]{"ALL"})[0];
 		}
 
 		public void map(Text key, RunnerWritable value, Context context) throws IOException, InterruptedException {
@@ -94,7 +94,15 @@ public class RunnerPrediction extends Configured implements Tool {
 			String gend = value.getGender().toString();
 			String cat = value.getCategory().toString();
 			long time = value.getTimeInSec();
-			if (gend.matches(gender) && cat.contains(category) && d == distance) {
+			boolean bool;
+			if (category.equals("ALL"))
+				bool = true;
+			else 
+				bool = cat.contains(category);
+			if (time>0&&gend.matches(gender) &&bool && d == distance) {
+				double speed = (distance*1000.0) / (time*1.0) ;
+				if(speed>6)
+					return;
 				int bin = (int)Math.floor(time/sec_step)*sec_step;
 				context.write(new IntWritable(bin), new RunnerResume(time));
 			}
@@ -118,7 +126,7 @@ public class RunnerPrediction extends Configured implements Tool {
 		}
 	}
 
-	public static class ResumeReducer   extends Reducer<IntWritable, RunnerResume, IntWritable, Text> {
+	public static class ResumeReducer   extends Reducer<IntWritable, RunnerResume, Text, Text> {
 		public int nb_step = 0;
 		public void setup(Context context) {
 			Configuration conf = context.getConfiguration();
@@ -126,7 +134,13 @@ public class RunnerPrediction extends Configured implements Tool {
 		}
 		public void reduce(IntWritable key, Iterable<RunnerResume> values,Context context) throws IOException, InterruptedException {
 			RunnerResume resume = ResumeCombiner.merge(values);
-			context.write(key, new Text(resume.toString()));
+			context.write(new Text(getTimeInFormat(key.get())+"-"+getTimeInFormat(key.get()+nb_step)), new Text(resume.toString()));
+		}
+		
+		private String getTimeInFormat(int timeInSec) {
+			String mm = String.valueOf(timeInSec/60);
+			String ss = String.valueOf(timeInSec%60);
+			return mm+"m"+ss+"s";
 		}
 	}
 	private Configuration conf;

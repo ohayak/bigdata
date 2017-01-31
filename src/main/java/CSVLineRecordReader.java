@@ -6,7 +6,6 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.io.compress.CompressionCodec;
 import org.apache.hadoop.io.compress.CompressionCodecFactory;
@@ -19,8 +18,6 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.Reader;
-import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.EnumMap;
@@ -86,8 +83,7 @@ public class CSVLineRecordReader extends RecordReader<Text, RunnerWritable> {
 		start = split.getStart();
 		end = start + split.getLength();
 		final Path file = split.getPath();
-				
-		//Pattern pattern = Pattern.compile("(\\d+)(\\D+)(.csv)(\\d*)");
+
 		Pattern pattern = Pattern.compile("(\\d*)(\\D*)(\\d*)(.csv)");
 		Matcher matcher = pattern.matcher( file.getName());
 		while(matcher.find()){
@@ -95,20 +91,6 @@ public class CSVLineRecordReader extends RecordReader<Text, RunnerWritable> {
 			raceName = matcher.group(2);
 			distance = matcher.group(3);
 		}
-//		String fileName = file.getName();
-//		String[] tokens = fileName.split("[0-9]|.csv");
-//		raceName = tokens[0];
-//		tokens = fileName.split("[a-z]|.csv");
-//		if(tokens.length == 1) {
-//			year = tokens[0];
-//			distance = "99";
-//		} else {
-//			year = tokens[0];
-//			distance = tokens[1];
-//		}
-
-
-		// TODO get race name from file name
 		compressionCodecs = new CompressionCodecFactory(job);
 		final CompressionCodec codec = compressionCodecs.getCodec(file);
 
@@ -141,11 +123,11 @@ public class CSVLineRecordReader extends RecordReader<Text, RunnerWritable> {
 		}
 		pos += readLine(line);
 		for (int i = 0; i < line.size(); i++) {
-			if (line.get(i).toString().toLowerCase().matches("name|nom|last name")) {
+			if (line.get(i).toString().toLowerCase().contains("nom")) {
 				runnerParam.get(Parameter.LASTNAME).setValue(true);
 				paramPos.get(Parameter.LASTNAME).setValue(i);
 			}
-			else if (line.get(i).toString().toLowerCase().matches("first name|prénom|prenom")) {
+			else if (line.get(i).toString().toLowerCase().contains("fff")) {
 				runnerParam.get(Parameter.FIRSTNAME).setValue(true);
 				paramPos.get(Parameter.FIRSTNAME).setValue(i);
 			}
@@ -197,24 +179,21 @@ public class CSVLineRecordReader extends RecordReader<Text, RunnerWritable> {
 		RunnerWritable rw = new RunnerWritable();
 		try{
 			int d = Integer.parseInt(distance);
-			if (d < 5)
-				rw.setDistance(-1);
-			else
-				rw.setDistance(d);
+			rw.setDistance(d);
 		}
 		catch(Exception e){
 			rw.setDistance(-1);
 		}
-	
+
 		rw.setRaceName(raceName);
-		
+
 		try{
 			rw.setYear(Integer.parseInt(year));
 		}
 		catch(Exception e){
 			rw.setYear(-1);
 		}
-		
+
 		int posi;
 		String val;
 		if (runnerParam.get(Parameter.FIRSTNAME).isTrue()) {
@@ -225,6 +204,8 @@ public class CSVLineRecordReader extends RecordReader<Text, RunnerWritable> {
 			} catch (Exception e ) {
 				rw.setFirstname("NDF");
 			}
+		} else {
+			rw.setFirstname("NDF");
 		}
 		if (runnerParam.get(Parameter.LASTNAME).isTrue()) {
 			try {
@@ -234,6 +215,8 @@ public class CSVLineRecordReader extends RecordReader<Text, RunnerWritable> {
 			} catch (Exception e ) {
 				rw.setLastname("NDF");
 			}
+		} else{
+			rw.setLastname("NDF");
 		}
 		if (runnerParam.get(Parameter.CLUB).isTrue()) {
 			try {
@@ -243,17 +226,10 @@ public class CSVLineRecordReader extends RecordReader<Text, RunnerWritable> {
 			} catch (Exception e ) {
 				rw.setClubName("NDF");
 			}
+		} else {
+			rw.setClubName("NDF");
+		}
 
-		}
-		if (runnerParam.get(Parameter.DISTANCE).isTrue()) {
-			try {
-				posi = paramPos.get(Parameter.DISTANCE).intValue();
-				val = line.get(posi).toString();
-				rw.setDistance(Integer.parseInt(val));
-			} catch (Exception e ) {
-				rw.setDistance(-1);
-			}
-		}
 		if (runnerParam.get(Parameter.RANK).isTrue()) {
 			try {
 				posi = paramPos.get(Parameter.RANK).intValue();
@@ -262,103 +238,108 @@ public class CSVLineRecordReader extends RecordReader<Text, RunnerWritable> {
 			} catch (Exception e ) {
 				rw.setRank(-1);
 			}
-
+		} else {
+			rw.setRank(-1);
 		}
 		if (runnerParam.get(Parameter.TIME).isTrue()) {
 			try {
 				posi = paramPos.get(Parameter.TIME).intValue();
 				val = line.get(posi).toString().toLowerCase();
 				long time = 0;
-				if (val.matches("[0-9]+[:h][0-9]+[:m][0-9]+")) {
-					String[] tokens = val.split(":|m|h");
-					long hh = Long.parseLong(tokens[0]);
-					long mm = Long.parseLong(tokens[1]);
-					long ss = Long.parseLong(tokens[2]);
+				long hh =0;
+				long mm =0;
+				long ss=0;
+				String val2 = new String(val);
+				val2 = val2.replaceAll("[^0-9]+",":");
+				String[] tokens = val2.trim().split(":");
+				if (tokens.length == 3) {
+					hh = Long.parseLong(tokens[0]);
+					mm = Long.parseLong(tokens[1]);
+					ss = Long.parseLong(tokens[2]);
 					time = hh*3600+mm*60+ss;
-				} else if (val.matches("[0-9]+[\'][0-9]+[\'\']")) {
-					String[] tokens = val.split("'|''");
-					long hh = Long.parseLong(tokens[0]);
-					long mm = Long.parseLong(tokens[1]);
-					time = hh*3600+mm*60;
-				} else if (val.matches("[0-9]+h[0-9]+[\'][0-9]+\'\'")) {
-					String[] tokens = val.split("h|\'|\'\'");
-					long hh = Long.parseLong(tokens[0]);
-					long mm = Long.parseLong(tokens[1]);
-					long ss = Long.parseLong(tokens[2]);
+				} else if (tokens.length == 2) {
+					if(val.contains("h")){
+						hh = Long.parseLong(tokens[0]);
+						mm = Long.parseLong(tokens[1]);
+					} 
+					else{
+						mm = Long.parseLong(tokens[0]);
+						ss = Long.parseLong(tokens[1]);
+					}
 					time = hh*3600+mm*60+ss;
-				} else if (val.matches("[0-9]+[:][0-9]+")) {
-					String[] tokens = val.split(":");
-					long hh = Long.parseLong(tokens[0]);
-					long mm = Long.parseLong(tokens[1]);
-					time = hh*3600+mm*60;
+				} else {
+					time = -1;
 				}
-				if (time < 1000)
-					rw.setTimeInSec(-1);
-				else
-					rw.setTimeInSec(time);
+				rw.setTimeInSec(time);
 			} catch (Exception e ) {
 				rw.setTimeInSec(-1);
 			}
+		} else {
+			rw.setTimeInSec(-1);
 		}
 		if (runnerParam.get(Parameter.CATEGORY).isTrue()) {
 			int rank = rw.getRank();
 			Gender gend = Gender.MALE;
 			Category cat = Category.OTHER;
 			try {
-			posi = paramPos.get(Parameter.CATEGORY).intValue();
-			val = line.get(posi).toString().toLowerCase();
-			if (val.matches("[0-9]+e[ ]+[A-Za-z]+[ ]+[hf]")) {
-				String[] tokens = val.split(" ");
-				try {
-				rank = Integer.parseInt(tokens[0].split("e")[0]);
-				} catch (Exception e) {
-					rank = -1;
-				}
-				
-				if (tokens[2].matches("h")) {
-					gend = Gender.MALE;
-				} else if (tokens[2].matches("f"))
-					gend = Gender.FEMALE;
-				else {
-					gend = Gender.MALE;
-				}
-				
-				try {
-					cat = Category.valueOf(tokens[1].toUpperCase());
-				} catch (Exception e) {
+				posi = paramPos.get(Parameter.CATEGORY).intValue();
+				val = line.get(posi).toString().toLowerCase();
+				if (val.matches("[0-9]+e[ ]+[A-Za-z]+[ ]+[hf]")) {
+					String[] tokens = val.split(" ");
+					try {
+						rank = Integer.parseInt(tokens[0].split("e")[0]);
+					} catch (Exception e) {
+						rank = -1;
+					}
+
+					if (tokens[2].matches("h")) {
+						gend = Gender.MALE;
+					} else if (tokens[2].matches("f"))
+						gend = Gender.FEMALE;
+					else {
+						gend = Gender.MALE;
+					}
+
+					try {
+						cat = Category.valueOf(tokens[1].toUpperCase());
+					} catch (Exception e) {
+						cat = Category.OTHER;
+					}
+				} else if (val.matches("[0-9]+e[ ]+[A-Za-z]+[ ]+[0-9][ ]+[hf]")) {
+					String[] tokens = val.split(" ");
+					try {
+						rank = Integer.parseInt(tokens[0].split("e")[0]);
+					} catch (Exception e) {
+						rank = -1;
+					}
+					if (tokens[3].matches("h")) {
+						gend = Gender.MALE;
+					} else if (tokens[3].matches("f"))
+						gend = Gender.FEMALE;
+					else {
+						gend = Gender.MALE;
+					}
+					try {
+						cat = Category.valueOf(tokens[1].toUpperCase());
+					} catch (Exception e) {
+						cat = Category.OTHER;
+					}
+				} else {
 					cat = Category.OTHER;
-				}
-			} else if (val.matches("[0-9]+e[ ]+[A-Za-z]+[ ]+[0-9][ ]+[hf]")) {
-				String[] tokens = val.split(" ");
-				try {
-					rank = Integer.parseInt(tokens[0].split("e")[0]);
-				} catch (Exception e) {
-					rank = -1;
-				}
-				if (tokens[3].matches("h")) {
-					gend = Gender.MALE;
-				} else if (tokens[3].matches("f"))
-					gend = Gender.FEMALE;
-				else {
 					gend = Gender.MALE;
 				}
-				try {
-					cat = Category.valueOf(tokens[1].toUpperCase());
-				} catch (Exception e) {
-					cat = Category.OTHER;
-				}
-			} else {
-				cat = Category.OTHER;
-				gend = Gender.MALE;
-			}
-			rw.setCategory(cat);
-			rw.setGender(gend);
-			rw.setRank(rank);
+				rw.setCategory(cat);
+				rw.setGender(gend);
+				rw.setRank(rank);
 			} catch (Exception e) {
 				rw.setCategory(Category.OTHER);
 				rw.setGender(Gender.MALE);
 				rw.setRank(rank);
 			}
+		} else {
+			rw.setCategory(Category.OTHER);
+			rw.setGender(Gender.MALE);
+			rw.setRank(rw.getRank());
 		}
 		return rw;
 	}

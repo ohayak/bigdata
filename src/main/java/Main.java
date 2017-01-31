@@ -55,12 +55,14 @@ public class Main{
         Configuration conf = new Configuration();
         while(true) {
         	System.out.println("Choose what do you want to calculate: ");
+        	System.out.println("--------------------------------------------------------");
         	System.out.println("D=(5, 10, 15, 42)");
         	System.out.println("G=(MALE,FEMALE, MALE|FEMALE");
         	System.out.println("C=(VETERAN, ALL)");
-    		System.out.println("1 - Top K fastest runners write : topspeed K D G C  ");
-    		System.out.println("2 - Top K active clubs write: topclub K G C");
-    		System.out.println("3 - Top K active category: topcat D G C");
+        	System.out.println("--------------------------------------------------------");
+    		System.out.println("1 - Top K fastest runners type : topspeed K D G C  ");
+    		System.out.println("2 - Top K active clubs type: topclub K G C");
+    		System.out.println("3 - Top K active category type: topcat D G C");
     		System.out.println("4 - Predictions type : prediction sec_step D C G");
     		System.out.println("5 - exit to close.");
     		System.out.print(">>> ");
