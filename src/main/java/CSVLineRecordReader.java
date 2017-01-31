@@ -275,13 +275,13 @@ public class CSVLineRecordReader extends RecordReader<Text, RunnerWritable> {
 					long mm = Long.parseLong(tokens[1]);
 					long ss = Long.parseLong(tokens[2]);
 					time = hh*3600+mm*60+ss;
-				} else if (val.matches("[0-9]+['][0-9]+['']")) {
+				} else if (val.matches("[0-9]+[\'][0-9]+[\'\']")) {
 					String[] tokens = val.split("'|''");
 					long hh = Long.parseLong(tokens[0]);
 					long mm = Long.parseLong(tokens[1]);
 					time = hh*3600+mm*60;
-				} else if (val.matches("[0-9]+h[0-9]+['][0-9]+''")) {
-					String[] tokens = val.split("h|'|''");
+				} else if (val.matches("[0-9]+h[0-9]+[\'][0-9]+\'\'")) {
+					String[] tokens = val.split("h|\'|\'\'");
 					long hh = Long.parseLong(tokens[0]);
 					long mm = Long.parseLong(tokens[1]);
 					long ss = Long.parseLong(tokens[2]);
@@ -292,7 +292,7 @@ public class CSVLineRecordReader extends RecordReader<Text, RunnerWritable> {
 					long mm = Long.parseLong(tokens[1]);
 					time = hh*3600+mm*60;
 				}
-				if (time < 2000)
+				if (time < 1000)
 					rw.setTimeInSec(-1);
 				else
 					rw.setTimeInSec(time);
