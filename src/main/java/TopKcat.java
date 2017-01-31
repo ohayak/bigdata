@@ -25,20 +25,30 @@ public class TopKcat extends Configured implements Tool{
 		private int k = 10;
 		private int distance;
 		private String gender;
+		private String category;
 
 		@Override
 		protected void setup(Context context)
 				throws IOException, InterruptedException {
 			this.k = context.getConfiguration().getInt("K", 10);
-			this.distance = context.getConfiguration().getInt("D", 10);
-			this.gender = context.getConfiguration().getStrings("G", new String[]{"MALE|FEMALE"})[0];
+			distance =  context.getConfiguration().getInt("D", 10);
+			gender =  context.getConfiguration().getStrings("G", new String[]{"MALE|FEMALE"})[0];
+			category =  context.getConfiguration().getStrings("C", new String[]{"ALL"})[0];
 		}
 
 		@Override
 		protected void map(Text key, RunnerWritable value, Context context)
 				throws IOException, InterruptedException {
+			int d = value.getDistance();
 			String gend = value.getGender().toString();
-			if (distance == value.getDistance() && gend.matches(gender) &&!value.getCategory().toString().equals("OTHER")) {
+			String cat = value.getCategory().toString();
+			boolean bool;
+			if (category.equals("ALL"))
+				bool = true;
+			else 
+				bool = cat.contains(category);
+			long time = value.getTimeInSec();
+			if (distance == d && gend.matches(gender) && bool) {
 					context.write(new Text(value.getCategory().toString()), new BooleanWritable(true));
 			}
 		}

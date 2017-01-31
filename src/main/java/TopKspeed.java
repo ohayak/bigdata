@@ -23,30 +23,34 @@ public class TopKspeed extends Configured implements Tool{
 		private int k = 10;
 		private int distance;
 		private String gender;
+		private String category;
 
 		@Override
 		protected void setup(Context context)
 				throws IOException, InterruptedException {
 			this.k = context.getConfiguration().getInt("K", 10);
-			this.distance = context.getConfiguration().getInt("D", 10);
-			this.gender = context.getConfiguration().getStrings("G",new String[]{"MALE|FEMALE"})[0];
+			distance =  context.getConfiguration().getInt("D", 10);
+			gender =  context.getConfiguration().getStrings("G", new String[]{"MALE|FEMALE"})[0];
+			category =  context.getConfiguration().getStrings("C", new String[]{"ALL"})[0];
 		}
 
 		@Override
 		protected void map(Text key, RunnerWritable value, Context context)
 				throws IOException, InterruptedException {
-			int distance = value.getDistance();
-			Gender gend = value.getGender();
-			if (gend == null)
-				gender = null;
+			int d = value.getDistance();
+			String gend = value.getGender().toString();
+			String cat = value.getCategory().toString();
+			boolean bool;
+			if (category.equals("ALL"))
+				bool = true;
+			else 
+				bool = cat.contains(category);
 			long time = value.getTimeInSec();
-			if (distance > 0  && gender != null && time > 0
+			if (d == distance  && gend.matches(gender) && bool && time > 0
 					&& (value.getFirstname()!=null && !value.getFirstname().equals( "NDF") && !value.getFirstname().equals( "null")
 					|| (value.getLastname()!=null && !value.getLastname().equals( "NDF") && !value.getLastname().equals( "null")))) {
-				if (distance == this.distance && gender.matches(this.gender)) {
 					double speed = (distance*1000.0) / (time*1.0) ;
 					topk.put(new Double(speed), value.toString());
-				}
 			}
 			while (topk.size() > k)
 				topk.remove(topk.firstKey());

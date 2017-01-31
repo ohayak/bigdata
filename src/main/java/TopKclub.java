@@ -24,18 +24,29 @@ public class TopKclub extends Configured implements Tool{
 		private TreeMap<Double, String> topk = new TreeMap<Double, String>();
 		private int k = 10;
 		private int distance;
+		private String gender;
+		private String category;
 
 		@Override
 		protected void setup(Context context)
 				throws IOException, InterruptedException {
 			this.k = context.getConfiguration().getInt("K", 10);
-			this.distance = context.getConfiguration().getInt("D", 10);
+			gender =  context.getConfiguration().getStrings("G", new String[]{"MALE|FEMALE"})[0];
+			category =  context.getConfiguration().getStrings("C", new String[]{"ALL"})[0];
 		}
 
 		@Override
 		protected void map(Text key, RunnerWritable value, Context context)
 				throws IOException, InterruptedException {
-			if (distance == value.getDistance() && !value.getClubName().equals("NDF")) {
+			String gend = value.getGender().toString();
+			String cat = value.getCategory().toString();
+			boolean bool;
+			if (category.equals("ALL"))
+				bool = true;
+			else 
+				bool = cat.contains(category);
+			if (gend.matches(gender) && bool 
+					&& !value.getClubName().equals("NDF")) {
 					context.write(new Text(value.getClubName()), new BooleanWritable(true));
 			}
 		}
