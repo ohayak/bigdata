@@ -87,29 +87,26 @@ public class CSVLineRecordReader extends RecordReader<Text, RunnerWritable> {
 		end = start + split.getLength();
 		final Path file = split.getPath();
 				
-		Pattern pattern = Pattern.compile("(\\d+)(\\D+)(.csv)(\\d*)");
+		//Pattern pattern = Pattern.compile("(\\d+)(\\D+)(.csv)(\\d*)");
+		Pattern pattern = Pattern.compile("(\\d*)(\\D*)(\\d*)(.csv)");
 		Matcher matcher = pattern.matcher( file.getName());
 		while(matcher.find()){
 			year = matcher.group(1);
 			raceName = matcher.group(2);
-			distance = matcher.group(4);
+			distance = matcher.group(3);
 		}
-			
-		
-     
-		/**
-		String fileName = file.getName();
-		String[] tokens = fileName.split("[0-9]+|.csv");
-		raceName = tokens[0];
-		tokens = fileName.split("[a-zA-Z]+|.csv");
-		if(tokens.length == 1) {
-			year = tokens[0];
-			distance = "99";
-		} else {
-			year = tokens[0];
-			distance = tokens[1];
-		}
-		**/
+//		String fileName = file.getName();
+//		String[] tokens = fileName.split("[0-9]|.csv");
+//		raceName = tokens[0];
+//		tokens = fileName.split("[a-z]|.csv");
+//		if(tokens.length == 1) {
+//			year = tokens[0];
+//			distance = "99";
+//		} else {
+//			year = tokens[0];
+//			distance = tokens[1];
+//		}
+
 
 		// TODO get race name from file name
 		compressionCodecs = new CompressionCodecFactory(job);
@@ -220,6 +217,8 @@ public class CSVLineRecordReader extends RecordReader<Text, RunnerWritable> {
 			try {
 				posi = paramPos.get(Parameter.FIRSTNAME).intValue();
 				val = line.get(posi).toString();
+				if (val.length() < 3)
+					throw new Exception();
 				rw.setFirstname(val);
 			} catch (Exception e ) {
 				rw.setFirstname("NDF");
@@ -229,6 +228,8 @@ public class CSVLineRecordReader extends RecordReader<Text, RunnerWritable> {
 			try {
 				posi = paramPos.get(Parameter.LASTNAME).intValue();
 				val = line.get(posi).toString();
+				if (val.length() < 3)
+					throw new Exception();
 				rw.setLastname(val);
 			} catch (Exception e ) {
 				rw.setLastname("NDF");
