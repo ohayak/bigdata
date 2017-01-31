@@ -53,9 +53,9 @@ public class Main{
         while(true) {
         	System.out.println("Choose what do you want to calculate:");
     		System.out.println("1 - Top K fastest runners write : topspeed K D=(5, 10, 15, 42, all) G=(MALE,FEMALE, MALE|FEMALE)  ");
-    		System.out.println("2 - Top K active clubs write: topclub X=(5, 10, 15, 42, all)");
-    		System.out.println("3 - Top K active category: topcat X=(5, 10, 15, 42, all) G=(MALE,FEMALE, MALE|FEMALE)");
-		System.out.println("4 - Predictions type : prediction D=() C=() G=()");
+    		System.out.println("2 - Top K active clubs write: topclub D=(5, 10, 15, 42, all)");
+    		System.out.println("3 - Top K active category: topcat D=(5, 10, 15, 42, all) G=(MALE,FEMALE, MALE|FEMALE)");
+    		System.out.println("4 - Predictions type : prediction sec_step D=() C=() G=()");
     		System.out.println("5 - exit to close.");
     		System.out.print(">>> ");
         	String[] inputs = scanner.nextLine().split(" ");
@@ -73,40 +73,56 @@ public class Main{
             		System.out.println("Command not valid. please retry");
         		}
         	case "topclub":
-        		break;
+        		try {
+        			conf.setInt("K", Integer.parseInt(inputs[1]));
+        			conf.setInt("D", Integer.parseInt(inputs[2]));
+        			TopKclub topk = new TopKclub();
+        			topk.setConf(conf);
+        			System.exit(ToolRunner.run(topk, new String[]{inputPath, outputPath}));
+        			break;
+        		} catch (Exception e) {
+        			System.out.println("Command not valid. please retry");
+        		}
         	case "topcat" :
-        		break;
+        		try {
+        			conf.setInt("K", Integer.parseInt(inputs[1]));
+        			conf.setInt("D", Integer.parseInt(inputs[2]));
+        			conf.setStrings("G", new String[]{inputs[3]});
+        			TopKcat topk = new TopKcat();
+        			topk.setConf(conf);
+        			System.exit(ToolRunner.run(topk, new String[]{inputPath, outputPath}));
+        			break;
+        		} catch (Exception e) {
+        			System.out.println("Command not valid. please retry");
+        		}
+        	case "prediction":
+        		try {
+        			try {
+            			conf.setInt("steps", Integer.parseInt(inputs[1]));
+            			conf.setInt("D", Integer.parseInt(inputs[2]));
+            			conf.setStrings("C", new String[]{inputs[3]});
+            			conf.setStrings("G", new String[]{inputs[4]});
+            			RunnerPrediction topk = new RunnerPrediction();
+            			topk.setConf(conf);
+            			System.exit(ToolRunner.run(topk, new String[]{inputPath, outputPath}));
+            			break;
+            		} catch (Exception e) {
+            			System.out.println("Command not valid. please retry");
+            		}
+        			conf.setInt("D", Integer.parseInt(inputs[2]));
+        			conf.setStrings("G", new String[]{inputs[3]});
+        			TopKcat topk = new TopKcat();
+        			topk.setConf(conf);
+        			System.exit(ToolRunner.run(topk, new String[]{inputPath, outputPath}));
+        			break;
+        		} catch (Exception e) {
+        			System.out.println("Command not valid. please retry");
+        		}
         	case "exit":
         		return;
         	default:
         		System.out.println("Command not valid. please retry");
         	}
         }
-		
-
-
-		
-//		Configuration conf = new Configuration();
-//		FileSystem fs = FileSystem.get(conf);
-//		
-//		Job job = Job.getInstance(conf, "PROJECT");
-//		job.setNumReduceTasks(1);
-//		job.setJarByClass(Main.class);
-//		
-//		job.setMapperClass(TopKMapper.class);
-//		job.setMapOutputKeyClass(Text.class);
-//		job.setMapOutputValueClass(BooleanWritable.class);
-//				
-//		job.setReducerClass(TopKCombiner.class);
-//		job.setOutputKeyClass(Text.class);
-//		job.setOutputValueClass(Text.class);
-//		
-//		job.setInputFormatClass(CSVLineInputFormat.class);
-//		CSVLineInputFormat.setInputPaths(job, inputPath);
-//		job.setOutputFormatClass(TextOutputFormat.class);
-//		fs.delete(outputPath);
-//		FileOutputFormat.setOutputPath(job, outputPath);
-//		
-//		System.exit(job.waitForCompletion(true) ? 0 : 1);
 	}
 }
