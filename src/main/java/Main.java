@@ -55,7 +55,8 @@ public class Main{
     		System.out.println("1 - Top K fastest runners write : topspeed K D=(5, 10, 15, 42, all) G=(MALE,FEMALE, MALE|FEMALE)  ");
     		System.out.println("2 - Top K active clubs write: topclub X=(5, 10, 15, 42, all)");
     		System.out.println("3 - Top K active category: topcat X=(5, 10, 15, 42, all) G=(MALE,FEMALE, MALE|FEMALE)");
-    		System.out.println("4 - exit to close.");
+		System.out.println("4 - Predictions type : prediction D=() C=() G=()");
+    		System.out.println("5 - exit to close.");
     		System.out.print(">>> ");
         	String[] inputs = scanner.nextLine().split(" ");
         	switch (inputs[0]) {
