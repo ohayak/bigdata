@@ -80,14 +80,9 @@ public class TopKspeed extends Configured implements Tool{
 		@Override
 		protected void reduce(DoubleWritable key, Iterable<RunnerWritable> values, Context context)
 				throws IOException, InterruptedException {
-
-
 			topk.put(key.get(), values);
-
 			while (topk.size() > k)
 				topk.remove(topk.firstKey());
-
-
 		}
 
 		@Override
